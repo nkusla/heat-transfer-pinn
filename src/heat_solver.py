@@ -23,8 +23,8 @@ class HeatForwardSolver():
 	def set_initial(self, u0: np.ndarray):
 		self.u[:,:,0] = u0
 
-	def set_boundaries(self, u_up: Callable, u_right: Callable, u_down: Callable, u_left: Callable):
-		self.boundaries = (u_up, u_right, u_down, u_left)
+	def set_boundaries(self, boundaries: Callable):
+		self.boundaries = boundaries
 
 	def solve(self):
 		start_time = time.time()
@@ -33,10 +33,7 @@ class HeatForwardSolver():
 
 		for k in tqdm(range(1, self.max_iter-1)):
 
-			u[self.mat_len-1:,:,k] = self.boundaries[0](u, k)
-			u[:,self.mat_len-1,k] = self.boundaries[1](u, k)
-			u[0,:,k] = self.boundaries[2](u, k)
-			u[:,0,k] = self.boundaries[3](u, k)
+			self.boundaries(u, k, self.delta_t)
 
 			for i in range(1, self.mat_len-1):
 				for j in range(1, self.mat_len-1):

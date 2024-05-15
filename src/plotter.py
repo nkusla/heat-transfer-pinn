@@ -22,7 +22,7 @@ def animate_plot(solver: HeatForwardSolver):
 		fig,
 		lambda k: plot_frame(solver, k, vmin, vmax),
 		frames=solver.max_iter,
-		interval=0.2,
+		interval=1,
 		repeat=True)
 
-	anim.save("anim.gif")
+	anim.save("anim.gif", fps=60)
