@@ -25,4 +25,6 @@ def animate_plot(solver: HeatForwardSolver):
 		interval=1,
 		repeat=True)
 
-	anim.save("anim.gif", fps=60)
+	anim_path = "HeatAnimation.gif"
+	anim.save(anim_path, fps=60)
+	print(f"Plot animated and saved to {anim_path}")

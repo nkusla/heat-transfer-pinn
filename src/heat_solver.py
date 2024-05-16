@@ -18,6 +18,8 @@ class HeatForwardSolver():
 		self.max_iter = max_iter
 		self.boundaries = None
 
+		assert delta_t <= (delta_x ** 2 / (2*alpha)), "This solver config will produce unstable solutions"
+
 		self.u = np.zeros((self.mat_len, self.mat_len, max_iter), dtype=np.float32)
 
 	def set_initial(self, u0: np.ndarray):
@@ -27,6 +29,8 @@ class HeatForwardSolver():
 		self.boundaries = boundaries
 
 	def solve(self):
+		print("Running solver")
+
 		start_time = time.time()
 		const = self.aplha * self.delta_t / self.delta_x**2
 		u = self.u
@@ -41,3 +45,26 @@ class HeatForwardSolver():
 
 		runtime = round(time.time() - start_time, 5)
 		print(f"Time: {runtime} seconds")
+
+	def generate_traning_data(self, num_points):
+		print("Generating traning data")
+		np.random.seed(1616)
+
+		u = self.u
+		u_label = np.empty(num_points, dtype=np.float32)
+		u_data = np.empty((num_points, 3), dtype=np.float32)
+
+		rand_idx = np.random.randint(0, self.mat_len-1, size=(num_points, 3))
+
+		for i, rand in enumerate(tqdm(rand_idx)):
+			u_label[i] = u[tuple(rand)]
+
+			data = np.array([
+				rand[0] * self.delta_x,
+				rand[1] * self.delta_x,
+				rand[2] * self.delta_t
+			], dtype=np.float32)
+
+			u_data[i] = data
+
+		return (u_label, u_data)

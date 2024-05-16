@@ -1,20 +1,20 @@
 import numpy as np
 
 options = {
-	'alpha' : 1.0,
-	'delta_x' : 1.0,
+	'alpha' : 2.0,
+	'delta_x' : 1,
 	'delta_t' : 0.05,
 	'domain_length' : 100,
-	'max_iter' : 300
+	'max_iter' : 400
 }
 
 def boundaries(u: np.ndarray, k: float, delta_t: float):
 	len = u.shape[0]
 
 	u[len-1:,:,k] = np.full(u.shape[0], 100)
-	u[:,len-1,k] = np.full(u.shape[0], 0)
-	u[0,:,k] = np.full(u.shape[0], 0)
-	u[:,0,k] = np.full(u.shape[0], 0)
+	u[:,len-1,k] = np.full(u.shape[0], 100)
+	u[0,:,k] = np.full(u.shape[0], 100)
+	u[:,0,k] = np.full(u.shape[0], 100)
 
 	# u_center(u)
 
