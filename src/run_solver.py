@@ -11,7 +11,8 @@ if __name__ == "__main__":
 
 	solver.solve()
 
-	#plotter.animate_plot(solver)
+	plotter.animate_plot(solver.u, solver.delta_t)
+	plotter.plot_frame(solver.u, solver.u.shape[2]-1, solver.delta_t).show()
 
 	u_label, u_data = solver.generate_traning_data(1000)
 

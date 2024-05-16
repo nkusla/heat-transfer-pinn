@@ -3,25 +3,24 @@ from matplotlib.animation import FuncAnimation
 from heat_solver import HeatForwardSolver
 import numpy as np
 
-def plot_frame(solver: HeatForwardSolver, k: int, vmin: float, vmax: float):
+def plot_frame(u: np.ndarray, k: int, delta_t: float):
 	plt.clf()
-	plt.title(f"t = {round(k * solver.delta_t, 4)}")
+	plt.title(f"t = {round(k * delta_t, 4)}")
 	plt.xlabel("x")
 	plt.ylabel("y")
-	plt.pcolormesh(solver.u[:,:,k], cmap=plt.cm.jet, vmin=vmin, vmax=vmax)
+	plt.pcolormesh(u[:,:,k], cmap=plt.cm.jet)
 	plt.colorbar(label="u(x, y, t)")
 	return plt
 
-def animate_plot(solver: HeatForwardSolver):
+def animate_plot(u: np.ndarray, delta_t: float):
 	fig = plt.figure()
 
-	vmax = np.max(solver.u.flatten())
-	vmin = np.min(solver.u.flatten())
+	max_iter = u.shape[2]
 
 	anim = FuncAnimation(
 		fig,
-		lambda k: plot_frame(solver, k, vmin, vmax),
-		frames=solver.max_iter,
+		lambda k: plot_frame(u, k, delta_t),
+		frames=max_iter,
 		interval=1,
 		repeat=True)
 
