@@ -11,22 +11,22 @@ import numpy as np
 torch.manual_seed(1616)
 
 class PINN(nn.Module):
-	def __init__(self, layers_size: List[int], alpha, *args, **kwargs) -> None:
+	def __init__(self, layers_size: List[int], alpha, device, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
 		self.activation = nn.Tanh()
 		self.loss_mse = nn.MSELoss(reduction='mean')
-		self.iter = 0
 
 		self.alpha = alpha
+		self.device = device
 
 		self.layers = nn.ModuleList([
 			nn.Linear(layers_size[i], layers_size[i+1]) for i in range(len(layers_size)-1)
-		])
+		]).to(device)
 
 		for i in range(len(self.layers)-1):
 			nn.init.xavier_normal_(self.layers[i].weight.data)
-			nn.init.zeros_(self.layers[i].biases.data)
+			nn.init.zeros_(self.layers[i].bias.data)
 
 	def forward(self, x: torch.Tensor):
 		inp = x
@@ -45,20 +45,21 @@ class PINN(nn.Module):
 
 	def loss_pde(self, x_colloc: torch.Tensor):
 		x_colloc.requires_grad_()
-		u = self.forward(x_colloc)
-		x = x_colloc[:,[0]]
-		y = x_colloc[:,[1]]
-		t = x_colloc[:,[2]]
 
-		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(u), create_graph=True)[0]
+		x = x_colloc[:, [0]]
+		y = x_colloc[:, [1]]
+		t = x_colloc[:, [2]]
+		u = self.forward(torch.cat([x, y, t], dim=1))
+
+		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(u_x).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(u_y).to(self.device), create_graph=True, retain_graph=True)[0]
 
 		f = u_t - self.alpha * (u_xx + u_yy)
 
-		loss = f.square().mean()
+		loss = self.loss_mse(f, torch.zeros_like(f))
 
 		return loss
 
@@ -79,15 +80,15 @@ class PINN(nn.Module):
 		return l_pde + l_bc + l_data
 
 	def train(self, traning_data: Dict[str, np.ndarray], max_iter: int, optimizer: torch.optim.Optimizer = None):
-		if optimizer is not None:
-			optimizer = optim.Adam(PINN.parameters(), lr=0.001,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+		if optimizer is None:
+			optimizer = optim.Adam(PINN.parameters(self), lr=0.001,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
 
 		for i in range(max_iter):
 			loss = self.total_loss(**traning_data)
-			optimizer.zero_grad()
 
+			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
 
 			if i % 100 == 0:
-				print(loss)
+				print(f"Iteration: {i}, Loss: {float(loss)}")
