@@ -7,12 +7,11 @@ if __name__ == "__main__":
 	torch.manual_seed(1616)
 
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-	print(torch.cuda.get_device_name())
 
-	pinn = PINN([3, 20, 20, 20, 20, 20, 20, 20, 1], 2.0, device)
+	pinn = PINN([3, 20, 20, 20, 20, 20, 1], 2.0, device)
 
-	num_colloc = 5000
-	t_end = round(solver_options["delta_t"] * solver_options["max_iter"])
+	num_colloc = 1000
+	t_end = 5
 	x_colloc = np.random.uniform(0, solver_options["domain_length"], (num_colloc, 2))
 	t_colloc = np.random.uniform(0, t_end, (num_colloc, 1))
 	x_colloc = np.hstack((x_colloc, t_colloc))
@@ -25,6 +24,4 @@ if __name__ == "__main__":
 		"x_colloc" : torch.tensor(x_colloc, dtype=torch.float32).to(device)
 	}
 
-	pinn.train(traning_data, 1000)
-
-	
+	pinn.train(traning_data, 5000)

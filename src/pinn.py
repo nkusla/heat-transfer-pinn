@@ -59,7 +59,7 @@ class PINN(nn.Module):
 
 		f = u_t - self.alpha * (u_xx + u_yy)
 
-		loss = self.loss_mse(f, torch.zeros_like(f))
+		loss = f.square().mean()
 
 		return loss
 
