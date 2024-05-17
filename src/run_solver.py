@@ -1,11 +1,14 @@
 from heat_solver import HeatForwardSolver
 import plotter
-from solver_params import u0, options, boundaries
+from solver_params import u0, solver_options, boundaries
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 if __name__ == "__main__":
+	np.random.seed(1616)
 
-	solver = HeatForwardSolver(**options)
+	solver = HeatForwardSolver(**solver_options)
 	solver.set_initial(u0)
 	solver.set_boundaries(boundaries)
 

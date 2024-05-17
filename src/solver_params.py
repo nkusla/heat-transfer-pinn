@@ -1,6 +1,6 @@
 import numpy as np
 
-options = {
+solver_options = {
 	'alpha' : 2.0,
 	'delta_x' : 1,
 	'delta_t' : 0.05,
@@ -26,7 +26,7 @@ def u_center(u: np.ndarray):
    		mid-len:mid+len:] = 100
 
 def u_inital():
-	length = round(options['domain_length'] / options['delta_x'])
+	length = round(solver_options['domain_length'] / solver_options['delta_x'])
 	return np.zeros((length, length))
 
 u0 = u_inital()

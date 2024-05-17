@@ -48,13 +48,15 @@ class HeatForwardSolver():
 
 	def generate_traning_data(self, num_points):
 		print("Generating traning data")
-		np.random.seed(1616)
 
 		u = self.u
 		u_label = np.empty(num_points, dtype=np.float32)
 		u_data = np.empty((num_points, 3), dtype=np.float32)
 
-		rand_idx = np.random.randint(0, self.mat_len-1, size=(num_points, 3))
+		rand_pos = np.random.randint(0, self.mat_len-1, size=(num_points, 2))
+		rand_t = np.random.randint(0, self.max_iter-1, size=(num_points, 1))
+
+		rand_idx = np.hstack((rand_pos, rand_t))
 
 		for i, rand in enumerate(tqdm(rand_idx)):
 			u_label[i] = u[tuple(rand)]
