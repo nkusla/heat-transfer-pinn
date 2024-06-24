@@ -11,10 +11,12 @@ solver_options = {
 def boundaries(u: np.ndarray, k: float, delta_t: float):
 	len = u.shape[0]
 
-	u[len-1:,:,k] = np.full(u.shape[0], 100)
-	u[:,len-1,k] = np.full(u.shape[0], 100)
-	u[0,:,k] = np.full(u.shape[0], 100)
-	u[:,0,k] = np.full(u.shape[0], 100)
+	initial_temp = 100
+
+	u[len-1:,:,k] = np.full(u.shape[0], initial_temp)
+	u[:,len-1,k] = np.full(u.shape[0], initial_temp)
+	u[0,:,k] = np.full(u.shape[0], initial_temp)
+	u[:,0,k] = np.full(u.shape[0], initial_temp)
 
 	# u_center(u)
 

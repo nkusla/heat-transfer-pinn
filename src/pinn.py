@@ -14,7 +14,7 @@ class PINN(nn.Module):
 	def __init__(self, layers_size: List[int], alpha, device, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
-		self.activation = nn.Tanh()
+		self.activation = nn.ReLU()
 		self.loss_mse = nn.MSELoss(reduction='mean')
 
 		self.alpha = alpha
@@ -24,13 +24,21 @@ class PINN(nn.Module):
 			nn.Linear(layers_size[i], layers_size[i+1]) for i in range(len(layers_size)-1)
 		]).to(device)
 
+		self.init_layers()
+
+	def init_layers(self):
 		for i in range(len(self.layers)-1):
-			nn.init.xavier_normal_(self.layers[i].weight.data)
+
+			if(self.activation.__class__.__name__ == 'ReLU'):
+				nn.init.kaiming_normal_(self.layers[i].weight.data, nonlinearity='relu')
+			elif(self.activation.__class__.__name__ == 'Tanh'):
+				nn.init.xavier_normal_(self.layers[i].weight.data)
+
 			nn.init.zeros_(self.layers[i].bias.data)
 
 	def forward(self, x: torch.Tensor):
 		inp = x
-		for i in range(len(self.layers)-2):
+		for i in range(len(self.layers)-1):
 			out = self.layers[i](inp)
 			inp = self.activation(out)
 
@@ -79,7 +87,7 @@ class PINN(nn.Module):
 
 		return l_pde + l_bc + l_data
 
-	def train(self, traning_data: Dict[str, np.ndarray], max_iter: int, optimizer: torch.optim.Optimizer = None):
+	def train(self, traning_data: Dict[str, torch.tensor], max_iter: int, optimizer: torch.optim.Optimizer = None):
 		if optimizer is None:
 			optimizer = optim.Adam(PINN.parameters(self), lr=0.001,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
 
