@@ -4,7 +4,7 @@ from scipy.stats import qmc
 
 SEED = 1616
 torch.manual_seed(SEED)
-t_scale = 5.0
+t_scale = 1.0
 
 def generate_bc(n_bc: int):
 	n_per_bc = n_bc // 4
@@ -39,10 +39,16 @@ def generate_colloc(n_colloc: int):
 	engine = qmc.LatinHypercube(d=3, seed=SEED)
 	x_colloc = engine.random(n_colloc)
 	x_colloc[:, 2] *= t_scale
+
 	return x_colloc
 
 def generate_ic(n_ic: int):
-	pass
+	engine = qmc.LatinHypercube(d=2, seed=SEED)
+	x_ic = engine.random(n_ic)
+	x_ic = np.concatenate((x_ic, np.zeros((n_ic, 1))), axis=1)
+	y_ic = np.zeros((n_ic, 1))
+
+	return y_ic, x_ic
 
 def generate_data():
 	pass
@@ -59,6 +65,11 @@ def generate_traning_data(
 	else:
 		x_colloc = None
 
+	if n_ic is not None:
+		y_ic, x_ic = generate_ic(n_ic)
+	else:
+		y_ic, x_ic = None, None
+
 	if n_bc is not None:
 		y_bc, x_bc = generate_bc(n_bc)
 	else:
@@ -67,6 +78,8 @@ def generate_traning_data(
 	traning_data = {
 		"x_data" : None,
 		"y_data" : None,
+		"x_ic": torch.tensor(x_ic, dtype=torch.float32).to(device),
+		"y_ic": torch.tensor(y_ic, dtype=torch.float32).to(device),
 		"x_bc" : torch.tensor(x_bc, dtype=torch.float32).to(device),
 		"y_bc" : torch.tensor(y_bc, dtype=torch.float32).to(device),
 		"x_colloc" : torch.tensor(x_colloc, dtype=torch.float32).to(device)

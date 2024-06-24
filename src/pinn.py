@@ -14,7 +14,7 @@ class PINN(nn.Module):
 	def __init__(self, layers_size: List[int], alpha, device, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
-		self.activation = nn.ReLU()
+		self.activation = nn.Tanh()
 		self.loss_mse = nn.MSELoss(reduction='mean')
 
 		self.alpha = alpha
@@ -45,11 +45,8 @@ class PINN(nn.Module):
 		out = self.layers[-1](inp)
 		return out
 
-	def loss_data(self, x_data, y_data):
-		return self.loss_mse(self.forward(x_data), y_data)
-
-	def loss_bc(self, x_bc, y_bc):
-		return self.loss_mse(self.forward(x_bc), y_bc)
+	def loss_default(self, x, y):
+		return self.loss_mse(self.forward(x), y)
 
 	def loss_pde(self, x_colloc: torch.Tensor):
 		x_colloc.requires_grad_()
@@ -71,25 +68,29 @@ class PINN(nn.Module):
 
 		return loss
 
-	def total_loss(self, x_data, y_data, x_bc, y_bc, x_colloc) -> torch.Tensor:
+	def total_loss(self, x_data, y_data, x_ic, y_ic, x_bc, y_bc, x_colloc) -> torch.Tensor:
 		l_data = 0.0
+		l_ic = 0.0
 		l_bc = 0.0
 		l_pde = 0.0
 
 		if x_data is not None and y_data is not None:
-			l_data = self.loss_data(x_data, y_data)
+			l_data = self.loss_default(x_data, y_data)
+
+		if x_ic is not None and y_ic is not None:
+			l_ic = self.loss_default(x_ic, y_ic)
 
 		if x_bc is not None and y_bc is not None:
-			l_bc = self.loss_bc(x_bc, y_bc)
+			l_bc = self.loss_default(x_bc, y_bc)
 
 		if x_colloc is not None:
 			l_pde = self.loss_pde(x_colloc)
 
-		return l_pde + l_bc + l_data
+		return l_data + l_pde + l_ic + l_bc
 
 	def train(self, traning_data: Dict[str, torch.tensor], max_iter: int, optimizer: torch.optim.Optimizer = None):
 		if optimizer is None:
-			optimizer = optim.Adam(PINN.parameters(self), lr=0.001,betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
+			optimizer = optim.Adam(PINN.parameters(self), lr=2e-4)
 
 		for i in range(max_iter):
 			loss = self.total_loss(**traning_data)
