@@ -5,10 +5,7 @@ import torch.optim as optim
 
 from typing import List, Dict
 import time
-from tqdm import tqdm
 import numpy as np
-
-torch.manual_seed(1616)
 
 class PINN(nn.Module):
 	def __init__(self, layers_size: List[int], alpha, device, *args, **kwargs) -> None:
@@ -56,11 +53,11 @@ class PINN(nn.Module):
 		t = x_colloc[:, [2]]
 		u = self.forward(torch.cat([x, y, t], dim=1))
 
-		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(u).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(u_x).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(u_y).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(t).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True)[0]
 
 		f = u_t - self.alpha * (u_xx + u_yy)
 
@@ -88,10 +85,10 @@ class PINN(nn.Module):
 
 		return l_data + l_pde + l_ic + l_bc
 
-	def train(self, traning_data: Dict[str, torch.tensor], max_iter: int, optimizer: torch.optim.Optimizer = None):
-		if optimizer is None:
-			optimizer = optim.Adam(PINN.parameters(self), lr=2e-4)
+	def train(self, traning_data: Dict[str, torch.tensor], max_iter: int):
+		optimizer = optim.Adam(PINN.parameters(self), lr=2e-4)
 
+		start_time = time.time()
 		for i in range(max_iter):
 			loss = self.total_loss(**traning_data)
 
@@ -101,3 +98,7 @@ class PINN(nn.Module):
 
 			if i % 100 == 0:
 				print(f"Iteration: {i}, Loss: {float(loss)}")
+
+		minutes = (time.time() - start_time) / 60
+		runtime = round(minutes, 5)
+		print(f"Training time: {runtime} min")

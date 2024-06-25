@@ -1,10 +1,12 @@
 import numpy as np
 import torch
 from scipy.stats import qmc
+from params import options
 
 SEED = 1616
 torch.manual_seed(SEED)
-t_scale = 1.0
+np.random.seed(SEED)
+t_end = options['t_end']
 
 def generate_bc(n_bc: int):
 	n_per_bc = n_bc // 4
@@ -14,31 +16,36 @@ def generate_bc(n_bc: int):
 
 	left = engine.random(n_per_bc)
 	left = np.concatenate((zeros, left), axis=1)
+	y_left = np.full((n_per_bc, 1), 0.0)
 
 	right = engine.random(n_per_bc)
 	right = np.concatenate((ones, right), axis=1)
+	y_right = np.full((n_per_bc, 1), 0.0)
 
 	bottom = engine.random(n_per_bc)
 	bottom = np.concatenate((bottom, zeros), axis=1)
+	y_bottom = np.full((n_per_bc, 1), 0.0)
 
 	top = engine.random(n_per_bc)
 	top = np.concatenate((top, ones), axis=1)
+	y_top = np.full((n_per_bc, 1), 100.0)
 
 	# time
-	time = engine.random(n_bc) * t_scale
+	time = np.random.uniform(0, t_end, n_bc) / t_end
 	time = time.reshape(-1, 1)
 
 	x_bc = np.concatenate((left, right, bottom, top), axis=0)
 	x_bc = np.concatenate((x_bc, time), axis=1)
 
-	y_bc = np.full((n_bc, 1), 100.0).reshape(-1, 1)
+	y_bc = np.concatenate((y_left, y_right, y_bottom, y_top), axis=0)
 
 	return y_bc, x_bc
 
 def generate_colloc(n_colloc: int):
-	engine = qmc.LatinHypercube(d=3, seed=SEED)
+	engine = qmc.LatinHypercube(d=2, seed=SEED)
 	x_colloc = engine.random(n_colloc)
-	x_colloc[:, 2] *= t_scale
+	time = np.random.uniform(0, t_end, size=(n_colloc, 1)) / t_end
+	x_colloc = np.concatenate((x_colloc, time), axis=1)
 
 	return x_colloc
 

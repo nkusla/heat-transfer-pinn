@@ -5,11 +5,12 @@ import time
 
 class HeatForwardSolver():
 	def __init__(self,
-			  alpha: float,
-			  delta_x: float,
-			  domain_length: float,
-			  delta_t: float,
-			  max_iter: float) -> None:
+			alpha: float,
+			delta_x: float,
+			domain_length: float,
+			delta_t: float,
+			max_iter: float,
+			*args, **kwargs) -> None:
 
 		self.aplha = alpha
 		self.delta_x = delta_x
@@ -29,13 +30,11 @@ class HeatForwardSolver():
 		self.boundaries = boundaries
 
 	def solve(self):
-		print("Running solver")
-
 		start_time = time.time()
 		const = self.aplha * self.delta_t / self.delta_x**2
 		u = self.u
 
-		for k in tqdm(range(1, self.max_iter-1)):
+		for k in tqdm(range(1, self.max_iter-1), desc="Running solver"):
 
 			self.boundaries(u, k, self.delta_t)
 

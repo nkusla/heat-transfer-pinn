@@ -1,12 +1,15 @@
 import numpy as np
 
-solver_options = {
+options = {
 	'alpha' : 2.0,
 	'delta_x' : 1,
 	'delta_t' : 0.05,
 	'domain_length' : 100,
-	'max_iter' : 400
+	'max_iter' : 600,
+	't_end' : 0.0
 }
+
+options['t_end'] = options['max_iter'] * options['delta_t']
 
 def boundaries(u: np.ndarray, k: float, delta_t: float):
 	len = u.shape[0]
@@ -14,9 +17,9 @@ def boundaries(u: np.ndarray, k: float, delta_t: float):
 	initial_temp = 100
 
 	u[len-1:,:,k] = np.full(u.shape[0], initial_temp)
-	u[:,len-1,k] = np.full(u.shape[0], initial_temp)
-	u[0,:,k] = np.full(u.shape[0], initial_temp)
-	u[:,0,k] = np.full(u.shape[0], initial_temp)
+	u[:,len-1,k] = np.full(u.shape[0], 0.0)
+	u[0,:,k] = np.full(u.shape[0], 0.0)
+	u[:,0,k] = np.full(u.shape[0], 0.0)
 
 	# u_center(u)
 
@@ -28,7 +31,7 @@ def u_center(u: np.ndarray):
    		mid-len:mid+len:] = 100
 
 def u_inital():
-	length = round(solver_options['domain_length'] / solver_options['delta_x'])
+	length = round(options['domain_length'] / options['delta_x'])
 	return np.zeros((length, length))
 
 u0 = u_inital()

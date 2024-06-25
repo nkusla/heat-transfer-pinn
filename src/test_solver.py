@@ -1,6 +1,6 @@
 from heat_solver import HeatForwardSolver
 import plotter
-from solver_params import u0, solver_options, boundaries
+from params import u0, options, boundaries
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,7 +8,7 @@ import numpy as np
 if __name__ == "__main__":
 	np.random.seed(1616)
 
-	solver = HeatForwardSolver(**solver_options)
+	solver = HeatForwardSolver(**options)
 	solver.set_initial(u0)
 	solver.set_boundaries(boundaries)
 

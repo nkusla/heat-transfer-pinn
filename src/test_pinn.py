@@ -1,7 +1,7 @@
 from pinn import PINN
 import torch
 import numpy as np
-from solver_params import solver_options
+from params import options
 from data_generation import generate_traning_data
 from plotter import animate_plot, plot_frame
 from tqdm import tqdm
@@ -9,14 +9,14 @@ from tqdm import tqdm
 if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-	pinn = PINN([3, 20, 20, 20, 20, 20, 1], 2.0, device)
+	pinn = PINN([3, 40, 40, 40, 40, 40, 40, 40, 1], 2.0, device)
 
-	traning_data = generate_traning_data(device, n_colloc=800, n_bc=400, n_ic=200)
+	traning_data = generate_traning_data(device, n_colloc=5000, n_bc=1000, n_ic=400)
 
-	pinn.train(traning_data, 40_000)
+	pinn.train(traning_data, 60_000)
 
-	n = solver_options['domain_length']
-	iter_end = solver_options['max_iter']
+	n = options['domain_length']
+	iter_end = options['max_iter']
 	u = np.zeros((n, n, iter_end))
 
 	for i in tqdm(range(iter_end)):
@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
 		grid_points = np.concatenate(
 			(X, Y,
-			np.full((n*n, 1), i * solver_options['delta_t'])),
+			np.full((n*n, 1), (i * options['delta_t']) / options['t_end'])),
 			axis=1)
 
 		grid_points = torch.tensor(grid_points, dtype=torch.float32).to(device)
@@ -38,5 +38,5 @@ if __name__ == "__main__":
 
 		u[:, :, i] = u_pred
 
-	animate_plot(u, solver_options['delta_t'])
-	plot_frame(u, iter_end-1, solver_options['delta_t']).show()
+	animate_plot(u, options['delta_t'])
+	plot_frame(u, iter_end-1, options['delta_t']).show()
