@@ -64,32 +64,34 @@ def generate_traning_data(
 		device: torch.device,
 		n_colloc: int = None,
 		n_bc: int = None,
-		n_ic: int = None,
-		n_data: int = None):
+		n_ic: int = None):
+
+	x_colloc = None
+	y_ic, x_ic = None, None
+	y_bc, x_bc = None, None
 
 	if n_colloc is not None:
 		x_colloc = generate_colloc(n_colloc)
-	else:
-		x_colloc = None
+		x_colloc = torch.tensor(x_colloc, dtype=torch.float32).to(device)
 
 	if n_ic is not None:
 		y_ic, x_ic = generate_ic(n_ic)
-	else:
-		y_ic, x_ic = None, None
+		x_ic = torch.tensor(x_ic, dtype=torch.float32).to(device)
+		y_ic = torch.tensor(y_ic, dtype=torch.float32).to(device)
 
 	if n_bc is not None:
 		y_bc, x_bc = generate_bc(n_bc)
-	else:
-		y_bc, x_bc = None, None
+		x_bc = torch.tensor(x_bc, dtype=torch.float32).to(device)
+		y_bc = torch.tensor(y_bc, dtype=torch.float32).to(device)
 
 	traning_data = {
 		"x_data" : None,
 		"y_data" : None,
-		"x_ic": torch.tensor(x_ic, dtype=torch.float32).to(device),
-		"y_ic": torch.tensor(y_ic, dtype=torch.float32).to(device),
-		"x_bc" : torch.tensor(x_bc, dtype=torch.float32).to(device),
-		"y_bc" : torch.tensor(y_bc, dtype=torch.float32).to(device),
-		"x_colloc" : torch.tensor(x_colloc, dtype=torch.float32).to(device)
+		"x_ic": x_ic,
+		"y_ic": y_ic,
+		"x_bc" : x_bc,
+		"y_bc" : y_bc,
+		"x_colloc" : x_colloc
 	}
 
 	return traning_data

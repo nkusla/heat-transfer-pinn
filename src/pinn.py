@@ -8,13 +8,18 @@ import time
 import numpy as np
 
 class PINN(nn.Module):
-	def __init__(self, layers_size: List[int], alpha, device, *args, **kwargs) -> None:
+	def __init__(self, layers_size: List[int], device, alpha: float = None, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
 		self.activation = nn.Tanh()
 		self.loss_mse = nn.MSELoss(reduction='mean')
 
-		self.alpha = alpha
+		if alpha is None:
+			self.alpha = torch.tensor([1.0], requires_grad=True).to(device)
+			self.alpha = nn.Parameter(self.alpha)
+		else:
+			self.alpha = alpha
+
 		self.device = device
 
 		self.layers = nn.ModuleList([

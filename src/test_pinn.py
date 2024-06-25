@@ -9,17 +9,17 @@ from tqdm import tqdm
 if __name__ == "__main__":
 	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-	pinn = PINN([3, 40, 40, 40, 40, 40, 40, 40, 1], 2.0, device)
+	pinn = PINN([3, 40, 40, 40, 40, 40, 40, 40, 1], device, 2.0)
 
 	traning_data = generate_traning_data(device, n_colloc=5000, n_bc=1000, n_ic=400)
 
-	pinn.train(traning_data, 60_000)
+	pinn.train(traning_data, 50_000)
 
 	n = options['domain_length']
 	iter_end = options['max_iter']
 	u = np.zeros((n, n, iter_end))
 
-	for i in tqdm(range(iter_end)):
+	for i in tqdm(range(iter_end), desc='Predicting'):
 		temp = np.linspace(0, 1, n)
 		X0, Y0 = np.meshgrid(temp, temp)
 
