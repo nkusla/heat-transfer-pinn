@@ -32,3 +32,5 @@ def animate_plot(u: np.ndarray, delta_t: float, fps: int = 30, filename: str = "
 
 	anim.save(filename, fps=fps)
 	print(f"Plot animated and saved to {filename}")
+
+	return anim

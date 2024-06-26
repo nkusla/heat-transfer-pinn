@@ -12,14 +12,14 @@ class HeatForwardSolver():
 			max_iter: float,
 			*args, **kwargs) -> None:
 
-		self.aplha = alpha
+		self.alpha = alpha
 		self.delta_x = delta_x
 		self.mat_len = round(domain_length / delta_x)
 		self.delta_t = delta_t
 		self.max_iter = max_iter
 		self.boundaries = None
 
-		assert delta_t <= (delta_x ** 2 / (2*alpha)), "This solver config will produce unstable solutions"
+		assert delta_t <= (delta_x ** 2) / (4*alpha), "This solver config will produce unstable solution"
 
 		self.u = np.zeros((self.mat_len, self.mat_len, max_iter), dtype=np.float32)
 
@@ -31,10 +31,10 @@ class HeatForwardSolver():
 
 	def solve(self):
 		start_time = time.time()
-		const = self.aplha * self.delta_t / self.delta_x**2
+		const = (self.alpha * self.delta_t) / (self.delta_x**2)
 		u = self.u
 
-		for k in tqdm(range(1, self.max_iter-1), desc="Running solver"):
+		for k in tqdm(range(0, self.max_iter-1), desc="Running solver"):
 
 			self.boundaries(u, k, self.delta_t)
 
@@ -44,28 +44,3 @@ class HeatForwardSolver():
 
 		runtime = round(time.time() - start_time, 5)
 		print(f"Time: {runtime} seconds")
-
-	def generate_traning_data(self, num_points):
-		print("Generating traning data")
-
-		u = self.u
-		u_label = np.empty(num_points, dtype=np.float32)
-		u_data = np.empty((num_points, 3), dtype=np.float32)
-
-		rand_pos = np.random.randint(0, self.mat_len-1, size=(num_points, 2))
-		rand_t = np.random.randint(0, self.max_iter-1, size=(num_points, 1))
-
-		rand_idx = np.hstack((rand_pos, rand_t))
-
-		for i, rand in enumerate(tqdm(rand_idx)):
-			u_label[i] = u[tuple(rand)]
-
-			data = np.array([
-				rand[0] * self.delta_x,
-				rand[1] * self.delta_x,
-				rand[2] * self.delta_t
-			], dtype=np.float32)
-
-			u_data[i] = data
-
-		return (u_label, u_data)

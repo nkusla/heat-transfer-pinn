@@ -15,8 +15,7 @@ class PINN(nn.Module):
 		self.loss_mse = nn.MSELoss(reduction='mean')
 
 		if alpha is None:
-			self.alpha = torch.tensor([1.0], requires_grad=True).to(device)
-			self.alpha = nn.Parameter(self.alpha)
+			self.alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True).to(device))
 		else:
 			self.alpha = alpha
 
@@ -29,13 +28,8 @@ class PINN(nn.Module):
 		self.init_layers()
 
 	def init_layers(self):
-		for i in range(len(self.layers)-1):
-
-			if(self.activation.__class__.__name__ == 'ReLU'):
-				nn.init.kaiming_normal_(self.layers[i].weight.data, nonlinearity='relu')
-			elif(self.activation.__class__.__name__ == 'Tanh'):
-				nn.init.xavier_normal_(self.layers[i].weight.data)
-
+		for i in range(len(self.layers)):
+			nn.init.xavier_normal_(self.layers[i].weight.data)
 			nn.init.zeros_(self.layers[i].bias.data)
 
 	def forward(self, x: torch.Tensor):
@@ -50,19 +44,19 @@ class PINN(nn.Module):
 	def loss_default(self, x, y):
 		return self.loss_mse(self.forward(x), y)
 
-	def loss_pde(self, x_colloc: torch.Tensor):
-		x_colloc.requires_grad_()
+	def loss_pde(self, x_colloc: torch.Tensor, alpha: float = None):
+		x_colloc.requires_grad_(True)
 
 		x = x_colloc[:, [0]]
 		y = x_colloc[:, [1]]
 		t = x_colloc[:, [2]]
 		u = self.forward(torch.cat([x, y, t], dim=1))
 
-		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(t).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True)[0]
-		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True)[0]
+		u_t = autograd.grad(u, t, grad_outputs=torch.ones_like(t).to(self.device), create_graph=True, retain_graph=True, allow_unused=True)[0]
+		u_x = autograd.grad(u, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True, allow_unused=True)[0]
+		u_y = autograd.grad(u, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True, allow_unused=True)[0]
+		u_xx = autograd.grad(u_x, x, grad_outputs=torch.ones_like(x).to(self.device), create_graph=True, retain_graph=True, allow_unused=True)[0]
+		u_yy = autograd.grad(u_y, y, grad_outputs=torch.ones_like(y).to(self.device), create_graph=True, retain_graph=True, allow_unused=True)[0]
 
 		f = u_t - self.alpha * (u_xx + u_yy)
 
@@ -88,9 +82,11 @@ class PINN(nn.Module):
 		if x_colloc is not None:
 			l_pde = self.loss_pde(x_colloc)
 
+		# print(f"Data: {l_data}, IC: {l_ic}, BC: {l_bc}, PDE: {l_pde}")
+
 		return l_data + l_pde + l_ic + l_bc
 
-	def train(self, traning_data: Dict[str, torch.tensor], max_iter: int):
+	def start_train(self, traning_data: Dict[str, torch.tensor], max_iter: int):
 		optimizer = optim.Adam(PINN.parameters(self), lr=2e-4)
 
 		start_time = time.time()
@@ -102,7 +98,11 @@ class PINN(nn.Module):
 			optimizer.step()
 
 			if i % 100 == 0:
-				print(f"Iteration: {i}, Loss: {float(loss)}")
+				log = f"Iteration: {i}, Loss: {float(loss)}"
+				if isinstance(self.alpha, torch.Tensor):
+					log += f", Alpha: {self.alpha.item()}"
+
+				print(log)
 
 		minutes = (time.time() - start_time) / 60
 		runtime = round(minutes, 5)

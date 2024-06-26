@@ -11,7 +11,10 @@ if __name__ == "__main__":
 
 	pinn = PINN([3, 40, 40, 40, 40, 40, 40, 40, 1], device, 2.0)
 
-	traning_data = generate_traning_data(device, n_colloc=5000, n_bc=1000, n_ic=400)
+	traning_data = generate_traning_data(device,
+		n_colloc=5000,
+		n_bc=1000,
+		n_ic=400)
 
 	pinn.train(traning_data, 50_000)
 
