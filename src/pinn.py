@@ -15,7 +15,7 @@ class PINN(nn.Module):
 		self.loss_mse = nn.MSELoss(reduction='mean')
 
 		if alpha is None:
-			self.alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True).to(device))
+			self.alpha = nn.Parameter(torch.tensor(1.0, requires_grad=True).to(device))
 		else:
 			self.alpha = alpha
 

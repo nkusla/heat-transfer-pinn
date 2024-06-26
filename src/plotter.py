@@ -3,13 +3,14 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 from tqdm import tqdm
 from typing import List
+from data_generation import inverse_scale_alpha
 
 def plot_frame(u: np.ndarray, k: int, delta_t: float, pbar: tqdm = None):
 	plt.clf()
 	plt.title(f"t = {round(k * delta_t, 4)}")
 	plt.xlabel("x")
 	plt.ylabel("y")
-	plt.pcolormesh(u[:,:,k], cmap=plt.cm.jet, vmin=0.0, vmax=100.0)
+	plt.pcolormesh(u[:,:,k], cmap=plt.cm.jet)
 	plt.colorbar(label="u(x, y, t)")
 
 	if pbar is not None:
@@ -41,5 +42,18 @@ def plot_loss(loss_history: List[float], epoch_history: List[float]):
 	plt.xlabel("Epoch")
 	plt.ylabel("Loss")
 	plt.title("Loss vs Epoch")
+	plt.grid()
+
+	return plt
+
+def plot_alpha(alpha_history: List[float], epoch_history: List[float], true_alpha: float):
+	alpha_history = list(map(inverse_scale_alpha, alpha_history))
+	plt.plot(epoch_history, alpha_history)
+	plt.xlabel("Epoch")
+	plt.ylabel("Alpha")
+	plt.title("Alpha vs Epoch")
+	plt.grid()
+	plt.axhline(y=true_alpha, color='r', linestyle='--', label="true alpha")
+	plt.legend()
 
 	return plt
