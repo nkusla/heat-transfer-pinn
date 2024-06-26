@@ -13,7 +13,7 @@ heat_scale = 100.0
 
 def generate_bc(n_bc: int):
 	n_per_bc = n_bc // 4
-	engine = qmc.LatinHypercube(d=1, seed=SEED)
+	engine = qmc.LatinHypercube(d=1)
 	zeros = np.zeros((n_per_bc, 1))
 	ones = np.ones((n_per_bc, 1))
 
@@ -54,10 +54,10 @@ def generate_colloc(n_colloc: int):
 	return x_colloc
 
 def generate_ic(n_ic: int):
-	engine = qmc.LatinHypercube(d=2, seed=SEED)
+	engine = qmc.LatinHypercube(d=2)
 	x_ic = engine.random(n_ic)
 	x_ic = np.concatenate((x_ic, np.zeros((n_ic, 1))), axis=1)
-	y_ic = np.zeros((n_ic, 1))
+	y_ic = np.zeros((n_ic, 1)) / heat_scale
 
 	return y_ic, x_ic
 
@@ -72,16 +72,16 @@ def generate_data(u: np.ndarray, n_data: int):
 	rand_pos = np.random.randint(0, u.shape[1], size=(n_data, 2))
 	rand_t = np.random.randint(0, u.shape[2], size=(n_data, 1))
 
-	rand_idx = np.hstack((rand_pos, rand_t))
+	rand_idx = np.concatenate((rand_pos, rand_t), axis=1)
 
 	for i, rand in enumerate(tqdm(rand_idx, desc="Generating experimental data")):
 		y_data[i] = u[tuple(rand)]
 
 		data = np.array([
-			rand[0] * delta_x,
 			rand[1] * delta_x,
+			rand[0] * delta_x,
 			rand[2] * delta_t
-		], dtype=np.float32)
+		], dtype=np.float32).reshape(1, 3)
 
 		x_data[i] = data
 

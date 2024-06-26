@@ -34,3 +34,13 @@ def animate_plot(u: np.ndarray, delta_t: float, fps: int = 30, filename: str = "
 	print(f"Plot animated and saved to {filename}")
 
 	return anim
+
+def plot_loss(loss: np.ndarray, filename: str = "LossPlot.png"):
+	plt.plot(loss)
+	plt.xlabel("Iteration")
+	plt.ylabel("Loss")
+	plt.title("Loss vs Iteration")
+	plt.savefig(filename)
+	print(f"Loss plot saved to {filename}")
+
+	return plt

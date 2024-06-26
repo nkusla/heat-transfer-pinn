@@ -87,6 +87,7 @@ class PINN(nn.Module):
 		return l_data + l_pde + l_ic + l_bc
 
 	def start_train(self, traning_data: Dict[str, torch.tensor], max_iter: int):
+		self.train()
 		optimizer = optim.Adam(PINN.parameters(self), lr=2e-4)
 
 		start_time = time.time()
