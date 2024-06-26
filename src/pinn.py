@@ -25,6 +25,10 @@ class PINN(nn.Module):
 			nn.Linear(layers_size[i], layers_size[i+1]) for i in range(len(layers_size)-1)
 		]).to(device)
 
+		self.loss_history = []
+		self.epoch_history = []
+		self.alpha_history = []
+
 		self.init_layers()
 
 	def init_layers(self):
@@ -99,9 +103,13 @@ class PINN(nn.Module):
 			optimizer.step()
 
 			if i % 100 == 0:
-				log = f"Iteration: {i}, Loss: {float(loss)}"
+				self.loss_history.append(loss.item())
+				self.epoch_history.append(i)
+
+				log = f"Epoch: {i}, Loss: {loss.item()}"
 				if isinstance(self.alpha, torch.Tensor):
 					log += f", Alpha: {self.alpha.item()}"
+					self.alpha_history.append(self.alpha.item())
 
 				print(log)
 
