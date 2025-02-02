@@ -17,3 +17,10 @@ pip install -r requirements.txt
 ```
 
 Code examples and neural network training is located in `main.ipynb` notebook.
+
+### References
+
+- [M. Raissi, et al., Physics Informed Deep Learning (Part I): Data-driven Solutions of Nonlinear Partial Differential Equations, arXiv: 1711.10561](https://arxiv.org/abs/1711.10561)
+- [M. Raissi, et al., Physics Informed Deep Learning (Part II): Data-driven Discovery of Nonlinear Partial Differential Equations, arXiv: 1711.10566](https://arxiv.org/abs/1711.10566)
+- [Cai, S., Wang, Z., Wang, S., Perdikaris, P., and Karniadakis, G. E. (April 21, 2021). "Physics-Informed Neural Networks for Heat Transfer Problems." ASME. J. Heat Transfer. June 2021; 143(6): 060801](https://doi.org/10.1115/1.4050542)
+- [Hubert Baty. A hands-on introduction to Physics-Informed Neural Networks for solving partial differential equations with benchmark tests taken from astrophysics and plasma physics. 2024. ffhal04491808f](https://hal.science/hal-04491808/file/pinnsf.pdf)
